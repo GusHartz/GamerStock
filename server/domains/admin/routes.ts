@@ -54,6 +54,7 @@ import {
   assets,
   assetMarkets,
   assetMarketState,
+  assetTrades,
   feeLedger,
   playerFeeBalance,
   roleBaselines,
@@ -578,13 +579,31 @@ export function registerAdminRoutes(app: Express): void {
   app.get("/api/admin/metrics", isAdminOnly, async (req, res) => {
     try {
       const [userCount] = await db.select({ count: sqlExpr`count(*)::int` }).from(users).where(sqlExpr`status != 'deleted'`);
-      const [tradeCount] = await db.select({ count: sqlExpr`count(*)::int` }).from(riotTrades);
-      const [assetCount] = await db.select({ count: sqlExpr`count(*)::int` }).from(riotAssets);
+      // Canonical multigame tables (riotTrades/riotAssets were legacy 0-row mirrors).
+      const [tradeCount] = await db.select({ count: sqlExpr`count(*)::int` }).from(assetTrades);
+      const [assetCount] = await db.select({ count: sqlExpr`count(*)::int` }).from(assets);
+
+      // Aggregations consumed by client/src/pages/admin/metrics.tsx — both fields
+      // are required to avoid `NaN%` and `—` placeholders in the dashboard.
+      const [{ totalVolume }] = await db
+        .select({
+          totalVolume: sqlExpr<string>`COALESCE(SUM(${assetTrades.grossValue}), 0)::text`,
+        })
+        .from(assetTrades);
+
+      const [{ activeUsers24h }] = await db
+        .select({
+          activeUsers24h: sqlExpr<number>`COUNT(DISTINCT ${assetTrades.userId})::int`,
+        })
+        .from(assetTrades)
+        .where(gte(assetTrades.executedAt, sqlExpr<Date>`NOW() - INTERVAL '24 hours'`));
 
       res.json({
         totalUsers: userCount.count,
         totalTrades: tradeCount.count,
         totalAssets: assetCount.count,
+        totalVolume,
+        activeUsers24h,
         timestamp: new Date().toISOString(),
       });
     } catch (err) {

@@ -263,19 +263,18 @@ export function registerDiscoveryRoutes(app: Express): void {
       const sortCol = sortable[sortField] ?? assets.lastTradePrice;
 
       // ── Terminal eligibility policy ───────────────────────────────────────────
-      // Only assets that satisfy ALL four criteria appear in the player market:
-      //   1. listing_status = 'LISTED'     — officially published
-      //   2. trading_status = 'ACTIVE'     — trading open
-      //   3. player_profile_id IS NOT NULL — linked to a real registered player
-      //   4. fundamental_price IS NOT NULL — valuation has been calculated from real API data
+      // Assets appear in /api/assets when they satisfy:
+      //   1. listing_status  = 'LISTED'     — officially published
+      //   2. trading_status  = 'ACTIVE'     — trading is open
+      //   3. fundamental_price IS NOT NULL  — has a valuation
       //
-      // Dota2 criterion: player_profile + enough OpenDota matches → fundamental_price set
-      // CS2 criterion:   player_profile + Steam stats fetched     → fundamental_price set
-      // Orphan/bootstrap assets without player_profile are excluded regardless of price.
+      // player_profile_id is intentionally NOT required: bootstrap assets are
+      // visible even before a real user reivindicated/onboarded a player profile.
+      // Ineligible-for-trading assets are still excluded via trading_status='PAUSED'
+      // (the bootstrap eligibility pipeline sets this for low-data players).
       const conditions: any[] = [
         eq(assets.listingStatus,   "LISTED"),
         eq(assets.tradingStatus,   "ACTIVE"),
-        isNotNull(assets.playerProfileId),
         isNotNull(assets.fundamentalPrice),
       ];
       if (game) conditions.push(ilike(markets.game, `%${game}%`));

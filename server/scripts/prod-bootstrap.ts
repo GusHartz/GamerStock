@@ -351,6 +351,36 @@ async function step5_report() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// STEP 6 — Migrate legacy UNDER_REVIEW assets to LISTED
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Historical bug: bootstrap services flagged dota2 assets as listing_status
+// 'UNDER_REVIEW' when OpenDota returned no WL data or games-played was below
+// minGames. Those assets are orphan/bootstrap-only (no player_profile_id) and
+// should be visible in /assets regardless of eligibility — the eligibility
+// signal is already conveyed by trading_status='PAUSED' (which keeps them
+// non-tradeable but listed).
+//
+// This step is idempotent: subsequent runs UPDATE zero rows.
+
+async function step6_migrateListingStatus() {
+  log("listing-mig", "Migrating UNDER_REVIEW orphan assets to LISTED...");
+  try {
+    const result = await db.execute(sql`
+      UPDATE assets
+      SET listing_status = 'LISTED', updated_at = NOW()
+      WHERE listing_status = 'UNDER_REVIEW'
+        AND player_profile_id IS NULL
+    `);
+    const rowCount = (result as any).rowCount ?? 0;
+    log("listing-mig", `Migrated ${rowCount} assets (UNDER_REVIEW → LISTED).`);
+  } catch (e: any) {
+    err("listing-mig", `Migration failed: ${e?.message}`);
+    // Non-fatal — bootstrap continues.
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -375,6 +405,9 @@ async function main() {
     console.log("");
 
     await step4_displayQueue();
+    console.log("");
+
+    await step6_migrateListingStatus();
     console.log("");
 
     await step5_report();

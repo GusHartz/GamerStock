@@ -937,8 +937,8 @@
             )
             SELECT
               a.id, 0,
-              '15.0000', ROUND(v.pv, 4)::text, ROUND(v.pv, 4)::text,
-              '0.5000', 'RECALC',
+              15.0000, ROUND(v.pv, 4), ROUND(v.pv, 4),
+              0.5000, 'RECALC',
               '{"source":"cs2_mig_v2","note":"Static dataset from pre-401 PandaScore stats"}'
             FROM (VALUES ${placeholders}) AS v(uid, pv)
             JOIN assets a ON a.asset_uid = v.uid

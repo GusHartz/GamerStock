@@ -569,8 +569,11 @@ export async function enrichDota2WithRealData(opts: {
         ineligible++;
         console.log(`[Dota2RealEnrich] INELIGIBLE (no WL) uid=${row.assetUid} name=${row.displayName}`);
         if (!dryRun) {
+          // Ineligibility is signalled by trading_status=PAUSED only.
+          // listing_status stays at its prior value (LISTED) so the asset
+          // remains visible in /assets read-side endpoints.
           await db.update(assets)
-            .set({ tradingStatus: "PAUSED", listingStatus: "UNDER_REVIEW", updatedAt: new Date() })
+            .set({ tradingStatus: "PAUSED", updatedAt: new Date() })
             .where(eq(assets.id, row.id));
         }
         return;
@@ -581,8 +584,9 @@ export async function enrichDota2WithRealData(opts: {
         ineligible++;
         console.log(`[Dota2RealEnrich] INELIGIBLE (games=${totalGames}<${minGames}) uid=${row.assetUid} name=${row.displayName}`);
         if (!dryRun) {
+          // Same rationale as above: PAUSED for trading, LISTED preserved.
           await db.update(assets)
-            .set({ tradingStatus: "PAUSED", listingStatus: "UNDER_REVIEW", updatedAt: new Date() })
+            .set({ tradingStatus: "PAUSED", updatedAt: new Date() })
             .where(eq(assets.id, row.id));
         }
         return;
