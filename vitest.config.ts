@@ -6,6 +6,10 @@ export default defineConfig({
     globals: true,
     environment: "node",
     testTimeout: 30000,
+    // S-18 pattern: TS entry points need explicit dotenv post-Replit migration.
+    // Without this, server/db.ts:7-11 throws "DATABASE_URL must be set" before
+    // any test runs.
+    setupFiles: ["dotenv/config"],
   },
   resolve: {
     alias: {

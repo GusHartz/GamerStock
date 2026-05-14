@@ -347,7 +347,8 @@ export async function getBootstrapStatus(): Promise<BootstrapStatusResult> {
 //   3. GET /api/players/{id}/recentMatches → last 20    (real momentum)
 //
 // Eligibility: WL accessible AND wins+losses >= MIN_GAMES_THRESHOLD
-//   → Ineligible assets → tradingStatus="PAUSED", listingStatus="UNDER_REVIEW"
+//   → Ineligible assets → tradingStatus="PAUSED" (listingStatus stays LISTED
+//     via schema default — visibility decoupled from tradeability)
 //   → No artificial performance for ineligible players
 //
 // Full formula (all 3 real components — no neutral assumptions):

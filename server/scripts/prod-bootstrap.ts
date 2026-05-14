@@ -1,3 +1,4 @@
+import "dotenv/config";
 // ─── GamerStock Production Bootstrap ──────────────────────────────────────────
 //
 // Explicit, reproducible database bootstrap for a fresh production environment.

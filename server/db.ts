@@ -10,7 +10,31 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// B2.9-6 — pool hardening: defaults are unsafe in production-shape traffic.
+//
+// Why each option:
+//   max                                — cap concurrent connections (default 10
+//                                        is fine for now; bump when scaling).
+//   idleTimeoutMillis                  — recycle stale idle conns (Postgres can
+//                                        drop them silently behind firewalls/LBs).
+//   connectionTimeoutMillis            — bound new-connection attempts so the
+//                                        server fails fast when DB is down.
+//   statement_timeout                  — server-side kill switch for any query
+//                                        running >30s (defends against B2.7-3
+//                                        path-to-regexp DoS and AMM math hang).
+//   idle_in_transaction_session_timeout — kill abandoned transactions that hold
+//                                        locks (e.g., trade execution that died).
+//   query_timeout                      — client-side mirror of statement_timeout
+//                                        so the Node process also gives up.
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 10,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 5_000,
+  statement_timeout: 30_000,
+  idle_in_transaction_session_timeout: 60_000,
+  query_timeout: 30_000,
+});
 export const db = drizzle(pool, { schema });
 
 export async function testDbConnection() {
