@@ -22,7 +22,6 @@ type ForgotForm = z.infer<typeof schema>;
 export default function ForgotPasswordPage() {
   const { toast } = useToast();
   const [sent, setSent] = useState(false);
-  const [devLink, setDevLink] = useState<string | null>(null);
 
   const form = useForm<ForgotForm>({
     resolver: zodResolver(schema),
@@ -34,10 +33,7 @@ export default function ForgotPasswordPage() {
       const res = await apiRequest("POST", "/api/auth/forgot-password", values);
       return res.json();
     },
-    onSuccess: (data) => {
-      setSent(true);
-      if (data._devResetLink) setDevLink(data._devResetLink);
-    },
+    onSuccess: () => setSent(true),
     onError: () => setSent(true),
   });
 
@@ -58,14 +54,6 @@ export default function ForgotPasswordPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {devLink && (
-                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-left">
-                  <p className="text-xs text-amber-400 font-mono font-medium mb-1">Dev — Reset Link (email not configured):</p>
-                  <Link href={devLink} className="text-xs text-amber-300 break-all hover:underline">
-                    {devLink}
-                  </Link>
-                </div>
-              )}
               <Link href="/login">
                 <Button variant="outline" className="border-white/10 hover:bg-white/5 text-white w-full">
                   Back to Login

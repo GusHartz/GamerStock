@@ -1328,7 +1328,7 @@ function AssetsPageInner() {
   const urlParams = new URLSearchParams(searchStr);
   const [search, setSearch] = useState(urlParams.get("q") ?? "");
   const [debouncedSearch, setDebouncedSearch] = useState(urlParams.get("q") ?? "");
-  const [game, setGame] = useState(urlParams.get("game") ?? "dota2");
+  const [game, setGame] = useState(urlParams.get("game") ?? "all");
   const [sort, setSort] = useState(urlParams.get("sort") ?? "lastTradePrice");
   const [order, setOrder] = useState<"asc" | "desc">(
     urlParams.get("order") === "asc" ? "asc" : "desc"

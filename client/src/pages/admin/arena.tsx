@@ -227,8 +227,8 @@ function SeasonConsole() {
     onError: (e: Error) => toast({ title: e.message, variant: "destructive" }),
   });
 
-  const activeSeason = data?.seasons.find((s) => s.id === data.activeSeasonId);
-  const nextSeasonNumber = (data?.seasons.length ?? 0) + 1;
+  const activeSeason = data?.seasons?.find((s) => s.id === data.activeSeasonId);
+  const nextSeasonNumber = (data?.seasons?.length ?? 0) + 1;
   const isPending = activateMutation.isPending || closeMutation.isPending || deleteMutation.isPending;
 
   return (
@@ -294,7 +294,7 @@ function SeasonConsole() {
       {/* Season Table */}
       {isLoading ? (
         <div className="text-xs text-muted-foreground">Loading seasons...</div>
-      ) : data && data.seasons.length > 0 ? (
+      ) : data?.seasons && data.seasons.length > 0 ? (
         <div className="overflow-x-auto rounded-xl border border-white/10">
           <table className="w-full text-xs">
             <thead>
