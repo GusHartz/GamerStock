@@ -295,11 +295,11 @@ export function registerIdentityRoutes(app: Express): void {
         expiresAt,
       });
 
-      // In production, send this via email. For now, log securely for admin access.
-      const resetLink = `/reset-password?token=${rawToken}`;
-      console.log(`[ForgotPassword] Reset link for ${email}: ${resetLink}`);
+      // Reset link is intentionally not logged or returned. In production this would
+      // be sent via email; the raw token is single-use and SHA-256-hashed in the DB.
+      console.log(`[ForgotPassword] Reset link generated for user`);
 
-      return res.json({ ...GENERIC, _devResetLink: resetLink });
+      return res.json(GENERIC);
     } catch (e: any) {
       console.error("[ForgotPassword] Error:", e);
       return res.json(GENERIC);

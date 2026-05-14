@@ -44,10 +44,59 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true, env: process.env.NODE_ENV || "unknown", time: new Date().toISOString() });
 });
 
+// Paths where the response body is NEVER logged (auth/credentials/PII).
+// Matched by prefix — covers /api/admin/users, /api/admin/users/:id, etc.
+const NO_BODY_LOG_PATHS = [
+  "/api/auth/login",
+  "/api/auth/signup",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/auth/me",
+  "/api/auth/change-password",
+  "/api/auth/force-change-password",
+  "/api/admin/users",
+  "/api/admin/login",
+  "/api/admin/auth/reset-password",
+  "/api/admin/me",
+  "/api/wallets",
+];
+
+// Keys redacted in any other endpoint where body IS logged.
+const REDACT_KEYS = new Set([
+  "password",
+  "passwordHash",
+  "password_hash",
+  "_devResetLink",
+  "resetToken",
+  "token",
+  "refreshToken",
+  "accessToken",
+  "apiKey",
+  "secret",
+  "bootstrapSecret",
+  "newPassword",
+  "currentPassword",
+  "tokenHash",
+]);
+
+function redactDeep(obj: any): any {
+  if (obj === null || typeof obj !== "object") return obj;
+  if (Array.isArray(obj)) return obj.map(redactDeep);
+  const out: any = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (REDACT_KEYS.has(k)) {
+      out[k] = "[REDACTED]";
+    } else {
+      out[k] = redactDeep(v);
+    }
+  }
+  return out;
+}
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  let capturedJsonResponse: any = undefined;
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
@@ -57,14 +106,25 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
+    if (!path.startsWith("/api")) return;
 
-      log(logLine);
+    let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+
+    const skipBody = NO_BODY_LOG_PATHS.some((p) => path.startsWith(p));
+    if (!skipBody && capturedJsonResponse !== undefined) {
+      try {
+        const redacted = redactDeep(capturedJsonResponse);
+        let bodyStr = JSON.stringify(redacted);
+        if (bodyStr.length > 500) {
+          bodyStr = bodyStr.slice(0, 497) + "...";
+        }
+        logLine += ` :: ${bodyStr}`;
+      } catch {
+        // ignore stringify errors
+      }
     }
+
+    log(logLine);
   });
 
   next();
@@ -91,13 +151,21 @@ app.use((req, res, next) => {
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
 
+    // Server-side log keeps full error (stack, SQL fragments, etc.)
     console.error("Internal Server Error:", err);
 
     if (res.headersSent) {
       return next(err);
     }
+
+    // Client-side message: only 4xx (intentional/validation) keep err.message.
+    // 5xx in production return a generic message to avoid leaking SQL fragments,
+    // internal paths, Drizzle error verbosity, ECONNREFUSED hosts, etc.
+    const message =
+      process.env.NODE_ENV === "production" && status >= 500
+        ? "Internal Server Error"
+        : err.message || "Internal Server Error";
 
     return res.status(status).json({ message });
   });

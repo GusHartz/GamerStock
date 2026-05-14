@@ -373,7 +373,30 @@ export function registerAdminRoutes(app: Express): void {
 
   app.get("/api/admin/users", isAdminOnly, async (req, res) => {
     try {
-      const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
+      // Explicit projection — passwordHash is intentionally NEVER returned.
+      const allUsers = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          displayName: users.displayName,
+          profileImageUrl: users.profileImageUrl,
+          gamesSelected: users.gamesSelected,
+          gamesOther: users.gamesOther,
+          role: users.role,
+          status: users.status,
+          emailVerified: users.emailVerified,
+          isBot: users.isBot,
+          mustChangePassword: users.mustChangePassword,
+          createdByAdmin: users.createdByAdmin,
+          blockedAt: users.blockedAt,
+          lastLoginAt: users.lastLoginAt,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        })
+        .from(users)
+        .orderBy(desc(users.createdAt));
       res.json(allUsers);
     } catch (err) {
       res.status(500).json({ message: "Failed to fetch users" });
@@ -384,7 +407,30 @@ export function registerAdminRoutes(app: Express): void {
     try {
       const userId = req.params.id;
 
-      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      // Explicit projection — passwordHash intentionally omitted.
+      const [user] = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          displayName: users.displayName,
+          profileImageUrl: users.profileImageUrl,
+          gamesSelected: users.gamesSelected,
+          gamesOther: users.gamesOther,
+          role: users.role,
+          status: users.status,
+          emailVerified: users.emailVerified,
+          isBot: users.isBot,
+          mustChangePassword: users.mustChangePassword,
+          createdByAdmin: users.createdByAdmin,
+          blockedAt: users.blockedAt,
+          lastLoginAt: users.lastLoginAt,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        })
+        .from(users)
+        .where(eq(users.id, userId));
       if (!user) return res.status(404).json({ message: "User not found" });
 
       // Portfolio
