@@ -1,0 +1,46 @@
+# dependencies
+node_modules
+
+# build
+dist
+build
+
+# environment variables
+.env
+.env.local
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# local configs
+.local
+.config
+.agents
+
+# logs
+*.log
+
+# keys / secrets
+*.key
+*.pem
+*.txt
+
+# archives
+*.tar.gz
+*.zip
+
+# Replit legacy
+.replit
+replit.nix
+
+# Claude Code local settings
+.claude/
+
+# Design references locais (não vão pro Git, mas ficam no disco)
+attached_assets/
+
+# Uploads runtime — em produção vão pra storage externo
+server/uploads/

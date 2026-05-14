@@ -1,0 +1,22 @@
+name: gamerstock
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gamerstock-postgres
+    environment:
+      POSTGRES_USER: gamerstock
+      POSTGRES_PASSWORD: gamerstock_dev_pw
+      POSTGRES_DB: gamerstock_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - gamerstock_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gamerstock -d gamerstock_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  gamerstock_pgdata:

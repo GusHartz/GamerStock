@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Base Colors - Deep dark terminal aesthetic */
+    --background: 222 47% 5%;
+    --foreground: 210 40% 98%;
+    
+    /* Surfaces */
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* Brand & Accent Colors */
+    /* Primary is Neon Green for "Buy/Up/Positive" */
+    --primary: 158 100% 50%;
+    --primary-foreground: 222 47% 5%;
+    
+    /* Destructive is Neon Red for "Sell/Down/Negative" */
+    --destructive: 345 100% 60%;
+    --destructive-foreground: 210 40% 98%;
+    
+    /* Muted elements and secondary surfaces */
+    --secondary: 217 32% 15%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 32% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 32% 17%;
+    --accent-foreground: 210 40% 98%;
+    
+    /* Borders and inputs */
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 158 100% 50%;
+    
+    /* Border Radius */
+    --radius: 0.75rem;
+
+    /* Typography */
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+    --font-display: 'Outfit', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  /* Force dark mode styling globally */
+  .dark {
+    --background: 222 47% 5%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 158 100% 50%;
+    --primary-foreground: 222 47% 5%;
+    --destructive: 345 100% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --secondary: 217 32% 15%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 32% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 32% 17%;
+    --accent-foreground: 210 40% 98%;
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 158 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground;
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply font-bold tracking-tight;
+  }
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-card/80 backdrop-blur-xl border border-white/5 shadow-2xl shadow-black/50;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60;
+  }
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-emerald-300;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Custom scrollbar for tables */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--accent));
+}
+
+/* ─── News Ticker Animation ─────────────────────────────────────────── */
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
